@@ -1,0 +1,182 @@
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+  TForm1 = class(TForm)
+    mmo1: TMemo;
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function Transliterate(s: string): string;
+var
+ i: integer;
+ t: UTF8String;
+begin
+ for i:=1 to Length(s) do
+  begin
+   case s[i] of
+        'а': t:=t+'a';
+        'б': t:=t+'b';
+        'в': t:=t+'v';
+        'г': t:=t+'g';
+        'д': t:=t+'d';
+        'е': t:=t+'e';
+        'ё': t:=t+'ye';
+        'ж': t:=t+'zh';
+        'з': t:=t+'z';
+        'и': t:=t+'i';
+        'й': t:=t+'y';
+        'к': t:=t+'k';
+        'л': t:=t+'l';
+        'м': t:=t+'m';
+        'н': t:=t+'n';
+        'о': t:=t+'o';
+        'п': t:=t+'p';
+        'р': t:=t+'r';
+        'с': t:=t+'s';
+        'т': t:=t+'t';
+        'у': t:=t+'u';
+        'ф': t:=t+'f';
+        'х': t:=t+'ch';
+        'ц': t:=t+'z';
+        'ч': t:=t+'ch';
+        'ш': t:=t+'sh';
+        'щ': t:=t+'ch';
+        'ъ': t:=t+'';
+        'ы': t:=t+'y';
+        'ь': t:=t+'';
+        'э': t:=t+'e';
+        'ю': t:=t+'yu';
+        'я': t:=t+'ya';
+        'А': T:=T+'A';
+        'Б': T:=T+'B';
+        'В': T:=T+'V';
+        'Г': T:=T+'G';
+        'Д': T:=T+'D';
+        'Е': T:=T+'E';
+        'Ё': T:=T+'Ye';
+        'Ж': T:=T+'Zh';
+        'З': T:=T+'Z';
+        'И': T:=T+'I';
+        'Й': T:=T+'Y';
+        'К': T:=T+'K';
+        'Л': T:=T+'L';
+        'М': T:=T+'M';
+        'Н': T:=T+'N';
+        'О': T:=T+'O';
+        'П': T:=T+'P';
+        'Р': T:=T+'R';
+        'С': T:=T+'S';
+        'Т': T:=T+'T';
+        'У': T:=T+'U';
+        'Ф': T:=T+'F';
+        'Х': T:=T+'Ch';
+        'Ц': T:=T+'Z';
+        'Ч': T:=T+'Ch';
+        'Ш': T:=T+'Sh';
+        'Щ': T:=T+'Ch';
+        'Ъ': T:=T+'''';
+        'Ы': T:=T+'Y';
+        'Ь': T:=T+'''';
+        'Э': T:=T+'E';
+        'Ю': T:=T+'Yu';
+        'Я': T:=T+'Ya';
+        ' ': T:=T+'_';
+        '.': T:=T+'_';
+        ',': T:=T+'_';
+      else t:=t+s[i];
+   end;
+  end;
+ Result:=t;
+end;
+
+
+procedure Format_txt;
+var
+  Str, CopyStr: TStringList;
+  i: cardinal;
+begin
+  Str:= TStringList.Create;
+  CopyStr:= TStringList.Create;
+  Str.LoadFromFile(AnsiToUtf8('C:\1\1.txt'));
+  for i:=0 to Str.Count-1 do begin
+  CopyStr.Add('<p>'+ Copy(Str[i],0,Length(Str[i])) +'</p>')
+  end;
+  Str.Free;
+  CopyStr.SaveToFile(AnsiToUtf8('C:\1\Final.txt'));
+  CopyStr.Free;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+var
+  Str, CopyStr, NewStrBuffer, StrBuf: TStringList;
+  i, j: cardinal;
+  PageName: UTF8String;
+begin
+Randomize;
+  Str:= TStringList.Create;
+  Str.LoadFromFile('C:\1\Final.txt');
+  CopyStr:= TStringList.Create;
+  CopyStr.LoadFromFile('C:\1\new_page.html');
+
+  for i:=0 to Str.Count-1 do begin
+    if Pos('<h1>', Str[i])  > 0 then begin
+      PageName:= Copy(Str[i],1,Length(Str[i]));
+      TrimRight(PageName);
+      Delete(PageName, Pos('<h1>',PageName), 4);
+      mmo1.Lines.Add(PageName);
+      Delete(PageName, Pos('</h1>',PageName), 5);
+      mmo1.Lines.Add(PageName);
+      PageName:= Transliterate(PageName);
+      NewStrBuffer:= TStringList.Create;
+      NewStrBuffer.LoadFromFile('C:\1\TOP_page.html');
+      NewStrBuffer.Add(AnsiToUtf8('<header>'));
+      NewStrBuffer.Add(AnsiToUtf8(Str[i]));
+      NewStrBuffer.Add(AnsiToUtf8('</header>'));
+      NewStrBuffer.Add(AnsiToUtf8('<section>'));
+        for j:= i+1 to Str.count-1 do begin
+        if Pos('<h1>', Str[j]) > 0 then Break;
+         NewStrBuffer.Add(AnsiToUtf8(Str[j]));
+        end;
+      StrBuf:= TStringList.Create;
+      StrBuf.LoadFromFile('C:\1\Down_page.html');
+      for j:=0 to StrBuf.Count-1 do begin
+      NewStrBuffer.Add(AnsiToUtf8(StrBuf[j]));
+      end;
+      StrBuf.Free;
+      for j:=(NewStrBuffer.Count-15) to NewStrBuffer.Count-1 do begin
+      if Pos('<a href', NewStrBuffer[j]) > 0 then begin
+      NewStrBuffer[j]:= AnsiToUtf8('<a href="http://sovstroy2016.ru">Главная</a>');
+      end;
+      end;
+      NewStrBuffer.SaveToFile('C:\1\1\'+PageName+'.html');
+      NewStrBuffer.Free;
+    end;
+  end;
+
+
+
+
+  Str.Free;
+  CopyStr.SaveToFile(AnsiToUtf8('C:\1\1\'+IntToStr(Random(1000))+'.html'));
+  CopyStr.Free;
+end;
+
+end.
